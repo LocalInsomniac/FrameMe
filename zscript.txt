@@ -179,15 +179,15 @@ class FrameMe : EventHandler {
 						string healthText = "\c[Red]+ \c[White]" .. killerHealth;
 						
 						header = "Killed by";
-						Screen.DrawText(smallFont, Font.CR_Untranslated, 160 - smallFont.StringWidth(healthText) * 0.5, 174, healthText, DTA_320x200, true);
+						Screen.DrawText(smallFont, Font.CR_Untranslated, 160 - smallFont.StringWidth(healthText) * 0.5, 166, healthText, DTA_320x200, true);
 					} else {
 						header = "Killed by the late";
 					}
 					
-					Screen.DrawText(bigFont, Font.CR_Red, 160 - bigFont.StringWidth(killerName) * 0.5, 158, killerName, DTA_320x200, true);
+					Screen.DrawText(bigFont, Font.CR_Red, 160 - bigFont.StringWidth(killerName) * 0.5, 150, killerName, DTA_320x200, true);
 				}
 				
-				Screen.DrawText(smallFont, Font.CR_White, 160 - smallFont.StringWidth(header) * 0.5, 150, header, DTA_320x200, true);
+				Screen.DrawText(smallFont, Font.CR_White, 160 - smallFont.StringWidth(header) * 0.5, 142, header, DTA_320x200, true);
 			}
 		}
 	}
