@@ -1,0 +1,4 @@
+server int sv_frameMe_time = 60;
+server int sv_frameMe_sound = 0;
+server float sv_frameMe_offset = 45;
+server bool sv_frameMe_freeze = true;

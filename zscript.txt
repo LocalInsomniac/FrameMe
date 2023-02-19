@@ -1,0 +1,198 @@
+version "4.10"
+
+class FrameMe : EventHandler {
+	int deathCamTime[MAXPLAYERS];
+	FrameMeCamera cameras[MAXPLAYERS];
+	
+	static double Lerp(double a, double b, double f) {
+		return a + (f * (b - a));
+	}
+	
+	static Vector3 Lerp3(Vector3 a, Vector3 b, double f) {
+		return a + (f * (b - a));
+	}
+	
+	override void PlayerDied(PlayerEvent e) {
+		int i = e.playerNumber;
+		PlayerInfo p = players[i];
+		Actor a = p.attacker;
+		
+		if (a) {
+			++deathCamTime[i];
+			
+			bool ok;
+			Actor cam;
+			PlayerPawn pmo = p.mo;
+			
+			[ok, cam] = pmo.A_SpawnItemEx("FrameMeCamera", flags: SXF_NoCheckPosition);
+			
+			if (cam) {
+				cam.master = pmo;
+				cam.target = a;
+				
+				let oldCam = cameras[i];
+				
+				if (oldCam) {
+					pmo.SetCamera(null);
+					oldCam.Destroy();
+				}
+				
+				cameras[i] = FrameMeCamera(cam);
+			}
+		}
+	}
+	
+	override void WorldTick() {
+		for (int i; i < MAXPLAYERS; ++i) {
+			if (deathCamTime[i]) {
+				++deathCamTime[i];
+				
+				if (deathCamTime[i] >= sv_frameMe_time) {
+					let cam = cameras[i];
+					
+					if (cam) {
+						let pmo = PlayerPawn(cam.master);
+						
+						if (pmo && pmo.health <= 0) {
+							Sound snd;
+							
+							switch (sv_frameMe_sound) {
+								default:
+								case 0:
+									if (gameInfo.gameType & GAME_DOOM) {
+										snd = "FrameMe/doom";
+										
+										break;
+									}
+									
+									if (gameInfo.gameType & GAME_HERETIC) {
+										snd = "FrameMe/heretic";
+										
+										break;
+									}
+									
+									if (gameInfo.gameType & GAME_HEXEN) {
+										snd = "FrameMe/hexen";
+										
+										break;
+									}
+									
+									if (gameInfo.gameType & GAME_STRIFE) {
+										snd = "FrameMe/strife";
+									}
+								break;
+								
+								case 1:
+									snd = "FrameMe/psx";
+								break;
+								
+								case 2:
+									snd = "FrameMe/rtcw";
+								break;
+								
+								case 3:
+									snd = "FrameMe/tf2";
+								break;
+								
+								case 4:
+									snd = "FrameMe/csgo";
+								break;
+								
+								case 5:
+									snd = "FrameMe/custom";
+								break;
+							}
+							
+							pmo.SetCamera(cam, true);
+							cam.SetOrigin(pmo.pos, false);
+							cam.AddZ(pmo.GetCameraHeight(), false);
+							cam.angle = pmo.angle;
+							cam.toAngle = cam.angle + FRandom[FrameMe](-sv_frameMe_offset, sv_frameMe_offset);
+							cam.pitch = pmo.pitch;
+							cam.roll = pmo.roll;
+							cam.A_StartSound(snd, Chan_7, ChanF_UI | ChanF_NoPause | ChanF_Overlap | ChanF_Local);
+							
+							if (sv_frameMe_freeze && !multiplayer) {
+								int playerCount;
+								
+								for (int j; j < MAXPLAYERS; ++j) {
+									if (playerInGame[j]) {
+										++playerCount;
+									}
+								}
+								
+								if (playerCount <= 1) {
+									level.SetFrozen(true);
+									S_ChangeMusic("");
+								}
+							}
+						}
+					}
+					
+					deathCamTime[i] = 0;
+				}
+			} else {
+				let cam = cameras[i];
+				
+				if (cam) {
+					let m = cam.master;
+					let t = cam.target;
+					
+					if (m && t) {
+						double th = t.height;
+						
+						cam.angle = FrameMe.Lerp(cam.angle, cam.toAngle, 0.1);
+						cam.pitch = FrameMe.Lerp(cam.pitch, 0, 0.1);
+						cam.roll = FrameMe.Lerp(cam.roll, 0, 0.1);
+						cam.SetOrigin(FrameMe.Lerp3(cam.pos, t.pos - cam.AngleToVector(cam.angle, (t.radius * 2) + th) + (0, 0, th * 0.5), 0.1), true);
+					}
+				}
+			}
+		}
+	}
+	
+	override void RenderOverlay(RenderEvent e) {
+		Actor mo = e.camera;
+		
+		if (mo is "FrameMeCamera") {
+			FrameMeCamera cam = FrameMeCamera(mo);
+			Actor killer = cam.target;
+			
+			if (killer) {
+				string header;
+				
+				if (killer == cam.master) {
+					header = "You killed yourself!";
+				} else {
+					int killerHealth = killer.health;
+					string killerName;
+					
+					if (killer is "PlayerPawn") {
+						PlayerInfo killerPlayer = PlayerPawn(killer).player;
+						
+						killerName = killerPlayer ? killerPlayer.GetUserName() : "???";
+					} else {
+						killerName = killer.GetTag();
+					}
+					
+					if (killerHealth > 0) {
+						string healthText = "\c[Red]+ \c[White]" .. killerHealth;
+						
+						header = "Killed by";
+						Screen.DrawText(smallFont, Font.CR_Untranslated, 160 - smallFont.StringWidth(healthText) * 0.5, 174, healthText, DTA_320x200, true);
+					} else {
+						header = "Killed by the late";
+					}
+					
+					Screen.DrawText(bigFont, Font.CR_Red, 160 - bigFont.StringWidth(killerName) * 0.5, 158, killerName, DTA_320x200, true);
+				}
+				
+				Screen.DrawText(smallFont, Font.CR_White, 160 - smallFont.StringWidth(header) * 0.5, 150, header, DTA_320x200, true);
+			}
+		}
+	}
+}
+
+class FrameMeCamera : SecurityCamera {
+	double toAngle;
+}

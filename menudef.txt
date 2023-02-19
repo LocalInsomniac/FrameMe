@@ -1,0 +1,20 @@
+OptionValue "FrameMe_Options_Sound" {
+	0, "Default"
+	1, "DOOM Playstation"
+	2, "Return to Castle Wolfenstein"
+	3, "Team Fortress 2"
+	4, "Counter-Strike: Global Offensive"
+	5, "Custom (FrameMe/custom)"
+}
+
+OptionMenu "FrameMe_Options" {
+    Title "FrameMe Options"
+	Option "Deathcam Sound", "sv_frameMe_sound", "FrameMe_Options_Sound"
+	Slider "Tics Before Deathcam", "sv_frameMe_time", 35, 140, 10
+	Slider "Deathcam Angle Offset", "sv_frameMe_offset", 0, 360, 10
+	Option "Freeze World on Singleplayer", "sv_frameMe_freeze", "YesNo"
+}
+
+AddOptionMenu "OptionsMenu" {
+    Submenu "FrameMe Options", "FrameMe_Options"
+}

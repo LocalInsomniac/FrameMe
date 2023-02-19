@@ -1,0 +1,8 @@
+FrameMe/doom DCM_DOOM
+FrameMe/heretic DCM_HRTC
+FrameMe/hexen DCM_HEXN
+FrameMe/strife DCM_STRF
+FrameMe/psx DCM_PSX
+FrameMe/rtcw DCM_RTCW
+FrameMe/tf2 DCM_TF2
+FrameMe/csgo DCM_CSGO
